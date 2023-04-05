@@ -4,7 +4,7 @@ import text/string
 import io/args
 
 effect Yield {
-  def yield(num: Int): Unit
+  def yield(x: Int): Unit
 }
 
 type Tree {
@@ -12,62 +12,47 @@ type Tree {
   Node(left: Tree, value: Int, right: Tree)
 }
 
-interface Generator {
-  def value(): Option[Int]
-  def next(): Unit
+type Generator {
+  Empty();
+  Thunk(value: Int, next: () => Generator at {})
 }
 
-def makeTree(n: Int): Tree =
-  if (n == 0) { Leaf() } else {
-    val sub = makeTree(n - 1)
-    Node(sub, n, sub)
+def make(n: Int): Tree =
+  if (n == 0) {
+    Leaf()
+  } else {
+    val t = make(n - 1)
+    Node(t, n, t)
   }
 
-def generator { prog: => Unit / Yield } {r: Region}: Generator at {prog, r} = {
-  var v: Option[Int] in r = None();
-  var cont: () => Unit at {prog, r} in r = box { () };
-
-  try { prog(); v = None() } with Yield {
-    def yield(x) = {
-      v = Some(x);
-      cont = box { resume(()) }
-    }
-  }
-  new Generator {
-    def value() = v
-    def next() = cont()
-  }
-}
-
-def sumGenerator(n: Int): Int = region r {
-  val tree = makeTree(n)
-
-  def iterate(tree: Tree): Unit / Yield = tree match {
+def iterate(t: Tree): Unit / Yield =
+  t match {
     case Leaf() => ()
-    case Node(left, v, right) =>
-      iterate(left)
-      do yield(v)
-      iterate(right)
+    case Node(l, v, r) =>
+      iterate(l);
+      do yield(v);
+      iterate(r)
   }
 
-  def gen = generator { iterate(tree) } {r}
-
-  def consumer(acc: Int): Int =
-    gen.value() match {
-      case None() => acc
-      case Some(v) =>
-        gen.next();
-        consumer(acc + v)
-    }
-
-  consumer(0)
-}
-
-def main() = commandLineArgs() match {
-  case Nil() => println(sumGenerator(10))
-  case Cons(x, Nil()) => toInt(x) match {
-    case None() => println("Unexpected non-integer '" ++ show(x) ++ "'")
-    case Some(i) => println(sumGenerator(i))
+def generate(program: () => Unit / Yield at {}): Generator =
+  try {
+    program();
+    Empty()
+  } with Yield {
+    def yield(x) = Thunk(x, fun() { resume(()) })
   }
-  case other => println("Expects zero or one argument, not '" ++ show(size(other)) ++ "'")
+
+def sum(a: Int, g: Generator): Int =
+  g match {
+    case Empty() => a
+    case Thunk(v, f) => sum(v + a, f())
+  }
+
+def run(n: Int): Int =
+  sum(0, generate(fun() { iterate(make(n)) }))
+
+def main() = {
+  val n = commandLineArgs().headOption.getOrElse { "" }.toInt.getOrElse { 5 };
+  val r = run(n);
+  println(r)
 }

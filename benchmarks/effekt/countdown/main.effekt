@@ -4,35 +4,32 @@ import io/args
 import text/string
 
 effect State {
-    def get(): Int
-    def set(i: Int): Unit
+  def get(): Int
+  def set(i: Int): Unit
 }
 
 def countdown(): Int / State = {
-    val i = do get()
-    if (i == 0) {
-        i
-    } else {
-        do set(i-1)
-        countdown()
-    }
+  val i = do get()
+  if (i == 0) {
+    i
+  } else {
+    do set(i - 1);
+    countdown()
+  }
 }
 
 def run(n: Int) = {
-    var s = n
-    try {
-        countdown()
-    } with State {
-        def get() = { resume(s) }
-        def set(i: Int) = { s = i; resume(()) }
-    }
+  var s = n;
+  try {
+    countdown()
+  } with State {
+    def get() = { resume(s) }
+    def set(i: Int) = { s = i; resume(()) }
+  }
 }
 
-def main() = commandLineArgs() match {
-    case Nil() => println(run(5))
-    case Cons(x, Nil()) => toInt(x) match {
-        case None() => println("Unexpected non-integer '" ++ show(x) ++ "'")
-        case Some(i) => println(run(i))
-    }
-    case other => println("Expects zero or one argument, not '" ++ show(size(other)) ++ "'")
+def main() = {
+  val n = commandLineArgs().headOption.getOrElse { "" }.toInt.getOrElse { 5 };
+  val r = run(n);
+  println(r)
 }
