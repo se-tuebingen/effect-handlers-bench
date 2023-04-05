@@ -13,10 +13,6 @@ effect Fail {
   def fail(): Nothing
 }
 
-def hashTriple(triple: Triple): Int = triple match {
-  case Triple(a,b,c) => mod(((53 * a) + 2809 * b + 148877 * c), 1000000007)
-}
-
 def choice(n: Int): Int / {Flip, Fail} = {
   if (n < 1) {
     do fail() match {}
@@ -38,22 +34,21 @@ def triple(n: Int, s: Int): Triple / {Flip, Fail} = {
   }
 }
 
-def sumTriples(n: Int, s: Int): Int = {
+def hash(triple: Triple): Int = triple match {
+  case Triple(a, b, c) => mod(((53 * a) + 2809 * b + 148877 * c), 1000000007)
+}
+
+def run(n: Int, s: Int): Int =
   try {
-    val r = triple(n, s)
-    hashTriple(r)
+    hash(triple(n, s))
   } with Flip {
     def flip() = mod(resume(true) + resume(false), 1000000007)
   } with Fail {
     def fail() = 0
   }
-}
 
-def main() = commandLineArgs() match {
-  case Nil() => println(sumTriples(100, 100))
-  case Cons(x, Cons(y, Nil())) => (toInt(x), toInt(y)) match {
-    case (Some(s), Some(n)) => println(sumTriples(s, n))
-    case _ => println("Unexpected non-integer(s) '" ++ show(x) ++ "', '" ++ show(y) ++ "'")
-  }
-  case other => println("Expects zero or two arguments, not '" ++ show(size(other)) ++ "'")
+def main() = {
+  val n = commandLineArgs().headOption.getOrElse { "" }.toInt.getOrElse { 10 };
+  val r = run(n, n);
+  println(r)
 }
