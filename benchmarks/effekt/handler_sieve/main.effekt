@@ -10,7 +10,7 @@ def primes(i: Int, n: Int, a: Int): Int / Prime =
     a
   } else if(do Prime(i)) {
     try {
-      primes(i + 1, n, a + 1)
+      primes(i + 1, n, a + i)
     } with Prime { (e: Int) =>
       if (mod(e, i) == 0) {
         resume(false)
