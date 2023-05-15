@@ -1,5 +1,17 @@
 DOCKERHUB=effecthandlers/effect-handlers
 
+bench:
+	make -C benchmarks/eff ; cp benchmarks/eff/results.csv eff_results.csv
+	make -C benchmarks/effekt ; cp benchmarks/effekt/results.csv effekt_results.csv
+	make -C benchmarks/koka ; cp benchmarks/koka/results.csv koka_results.csv
+	make -C benchmarks/ocaml ; cp benchmarks/ocaml/results.csv ocaml_results.csv
+
+clean:
+	make -C benchmarks/eff clean
+	make -C benchmarks/effekt clean
+	make -C benchmarks/koka clean
+	make -C benchmarks/ocaml clean
+
 all: bench_eff bench_hia bench_koka bench_links bench_ocaml
 
 # Eff in ocaml
@@ -86,5 +98,3 @@ test_ocaml: system_ocaml
 	docker run -v $(shell pwd):/source $(DOCKERHUB):ocaml \
 		make -C /source/benchmarks/ocaml test
 
-clean:
-	rm -f _results *~
