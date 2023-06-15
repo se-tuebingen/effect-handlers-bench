@@ -1,12 +1,15 @@
 bench: build
 	hyperfine --export-csv results.csv \
-		'fibonacci_recursive/main 42'
+		'fibonacci_recursive/main 42' \
+		'countdown/main 200000000'
 
 test: build
 	cd fibonacci_recursive ; ./main 5 > actual ; echo 5 > expected ; diff expected actual
+	cd countdown ; ./main > actual ; echo 0 > expected ; diff expected actual
 
 build:
 	cd fibonacci_recursive ; mlton -default-type int64 -output main main.sml
+	cd countdown ; mlton -default-type int64 -output main main.sml
 
 clean:
 	-rm -r */out/

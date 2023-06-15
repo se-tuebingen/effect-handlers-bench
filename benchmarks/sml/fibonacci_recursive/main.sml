@@ -8,7 +8,6 @@ fun fibonacci n =
 fun force opt =
   (case opt of NONE => raise Fail "force of option failed" | SOME v => v);
 
-
 fun main () =
     case CommandLine.arguments () of
          []     => print ("Too few arguments!\n")
