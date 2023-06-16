@@ -10,8 +10,8 @@ fun force opt =
 
 fun main () =
     case CommandLine.arguments () of
-         []     => print ("Too few arguments!\n")
-       | [arg] => print (Int.toString (fibonacci (force (Int.fromString arg))))
-       | args   => print ("Too many arguments!\n");
+        []     => print ("Too few arguments!\n")
+      | [arg] => print (Int.toString (fibonacci (force (Int.fromString arg))) ^ "\n")
+      | args   => print ("Too many arguments!\n");
 
 val _ = main ();

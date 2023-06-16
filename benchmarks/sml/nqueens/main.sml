@@ -31,17 +31,16 @@ fun place size column k =
     );
 
 
+fun run n =
+  place n n (fn a => 1)
+
 fun force opt =
-  (case opt of NONE => raise Fail "force of option failed" | SOME v => v);
+    (case opt of NONE => raise Fail "force of option failed" | SOME v => v);
 
 fun main () =
     case CommandLine.arguments () of
-         []     => print ("Too few arguments!\n")
-       | [arg] =>
-          let val n = force (Int.fromString arg);
-          in
-            print (Int.toString (place n n (fn a => 1)))
-          end
-       | args   => print ("Too many arguments!\n");
+        []     => print ("Too few arguments!\n")
+      | [arg] => print (Int.toString (run (force (Int.fromString arg))) ^ "\n")
+      | args   => print ("Too many arguments!\n");
 
 val _ = main ();

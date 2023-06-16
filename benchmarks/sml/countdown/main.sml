@@ -22,7 +22,7 @@ fun force opt =
 fun main () =
     case CommandLine.arguments () of
          []     => print ("Too few arguments!\n")
-       | [arg] => print (Int.toString (countdown (force (Int.fromString arg))))
+       | [arg] => print (Int.toString (countdown (force (Int.fromString arg))) ^ "\n")
        | args   => print ("Too many arguments!\n");
 
 val _ = main ();
