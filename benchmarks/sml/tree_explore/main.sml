@@ -1,12 +1,33 @@
+datatype 'a List =
+    Nil
+  | Cons of ('a * ('a List));
+
+fun reverseOnto l other = case l of
+    Nil => other
+  | Cons (head, tail) => reverseOnto tail (Cons (head, other));
+
+fun maximum l = case l of
+    Nil => ~1
+  | Cons (head, tail) =>
+    case tail of
+        Nil => head
+      | _ => let val m = maximum tail;
+              in if head > m then head else m
+              end;
+
+
 datatype Tree =
     Leaf
   | Node of (Tree * int * Tree);
 
-datatype 'a List =
-  Nil
-  | Cons of ('a * ('a List));
+fun operator x y = abs (x - (503 * y) + 37) mod 1009
 
-
+fun make n =
+  if n = 0 then Leaf
+  else let
+    val t = make (n - 1);
+    in Node (t, n, t)
+  end;
 
 fun reverse l =
   let fun loop lst acc =
@@ -17,61 +38,23 @@ fun reverse l =
   end;
 
 
-fun reverseOnto l other = case l of
-  Nil => other
-  | Cons (head, tail) =>
-    reverseOnto tail (Cons (head, other));
-
-
-fun maximum l = case l of
-  Nil => ~1
-  | Cons (head, tail) =>
-    case tail of
-        Nil => head
-      | _ => let val tmp = maximum tail;
-      in if head > tmp then head else tmp
-      end;
-
-
-fun operator x y =
-  let val tmp =
-    if (x - (503 * y) + 37) < 0
-    then 0 - x - (503 * y) + 37
-    else x - (503 * y) + 3;
-  in tmp mod 1009
-  end;
-
-
-fun make n =
-  if n = 0 then Leaf
-  else let val t = make (n - 1);
-  in Node (t, n, t)
-  end;
-
 
 fun run n = let
   val tree = make n;
 
-  fun explore t k k2 y =
+  fun explore t y k k2 =
     case t of
       Leaf => k y k2 y
     | Node (left, middle, right) =>
-      let fun join a x1 y1 =
-        let val tmp = operator y1 middle;
-        in
-          explore (if a then left else right) (fn a =>
-            k (operator middle a)) x1 tmp
-        end;
-      in
-        join true (fn a => fn k4 => join false (fn a1 => k2 (reverseOnto (reverse a) a1)) k4) y
-      end;
+      explore left (operator y middle) (fn a => k (operator middle a)) (fn a => fn y1 =>
+      explore right (operator y1 middle) (fn a => k (operator middle a)) (fn a1 => fn y2 =>
+      k2 (reverseOnto (reverse a) a1) y2))
 
   fun loop i x =
     if i = 0 then x else
-      explore tree
-        (fn a => fn k2 => k2 (Cons (a, Nil)))
-        (fn a => fn k2 => loop (i - 1) (maximum a))
-        x;
+      explore tree x
+        (fn a => fn k2 => fn y2 => k2 (Cons (a, Nil)) y2)
+        (fn a => fn _ => loop (i - 1) (maximum a));
     in loop 10 0
   end;
 

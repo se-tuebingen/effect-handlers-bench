@@ -5,26 +5,22 @@ datatype 'a List =
 exception Zero
 
 fun product xs =
-  let fun loop xs = case xs of
+  case xs of
       Nil => 0
-    | Cons (head, tail) =>
-        if head = 0
-        then raise Zero
-        else head * (loop tail)
-  in loop xs handle Zero => 0 end;
+    | Cons (y, ys) => if y = 0 then raise Zero else y * product ys
 
 fun enumerate i =
   if i < 0 then Nil else Cons (i, enumerate (i - 1));
+
+fun run_product xs =
+  product xs handle Zero => 0
 
 fun run n =
   let
     val xs = enumerate 1000;
     fun loop i a =
       if (i = 0) then a
-      else
-        let val tmp = product xs;
-        in loop (i - 1) (a + tmp)
-      end;
+      else loop (i - 1) (a + run_product xs)
   in loop n 0
   end;
 

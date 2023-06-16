@@ -16,16 +16,15 @@ fun place size column k =
   else
     place size (column - 1) (fn rest =>
       let
-        fun extend next =
-          if safe next 1 rest then
-            k (Cons (next, rest))
-          else
-            0
         fun loop i a =
-          if i = size then
-            a + extend i
-          else
-            loop (i + 1) (a + extend i)
+          let
+            val n = if safe i 1 rest then k (Cons (i, rest)) else 0
+          in
+            if i = size then
+              a + n
+            else
+              loop (i + 1) (a + n)
+          end
       in loop 1 0
       end
     );

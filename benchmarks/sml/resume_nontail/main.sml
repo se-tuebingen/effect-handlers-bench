@@ -1,12 +1,9 @@
 fun loop i s =
-  let fun operator x y =
+  if i = 0 then s else
     let
-      val tmp1 = (x - (503 * y) + 37);
-      val tmp2 = if tmp1 < 0 then 0 - tmp1 else tmp1;
-    in (tmp2 mod 1009)
-    end;
-  in
-    if i = 0 then s else operator i (loop (i - 1) s)
+      val y = loop (i - 1) s
+    in
+      abs (i - (503 * y) + 37) mod 1009
   end;
 
 fun run n =

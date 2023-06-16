@@ -1,15 +1,11 @@
+
 fun run n =
   let fun parse a x y z =
-    let fun join a2 x2 y2 z2 =
-      if a2 = 36 then parse (a + 1) x2 y2 z2
-      else if a2 = 10 then parse 0 x2 y2 (z2 + a)
-      else z2;
-    in
     if y > n
       then z
       else if x = 0
-        then join 10 (y + 1) (y + 1) z
-        else join 36 (x - 1) y z end;
+        then parse 0 (y + 1) (y + 1) (z + a)
+        else parse (a + 1) (x - 1) y z
     in
       parse 0 0 0 0
     end
