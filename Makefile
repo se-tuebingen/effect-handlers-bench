@@ -11,6 +11,7 @@ clean:
 	make -C benchmarks/effekt clean
 	make -C benchmarks/koka clean
 	make -C benchmarks/ocaml clean
+	make -C benchmarks/sml clean
 
 all: bench_eff bench_hia bench_koka bench_links bench_ocaml
 
