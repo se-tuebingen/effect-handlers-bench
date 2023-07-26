@@ -1,5 +1,5 @@
-bench: build
-	hyperfine --export-csv results.csv \
+bench:
+	hyperfine --warmup 10 --export-csv results.csv \
 		'countdown/main 200000000' \
 		'fibonacci_recursive/main 42' \
 		'product_early/main 100000' \
@@ -8,7 +8,7 @@ bench: build
 		'tree_explore/main 16' \
 		'triples/main 300' \
 		'parsing_dollars/main 20000' \
-		'resume_nontail/main 20000'
+		'resume_nontail/main 10000'
 
 test: build
 	cd countdown ; ./main 5 > actual ; echo 0 > expected ; diff expected actual

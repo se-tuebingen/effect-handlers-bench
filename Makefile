@@ -2,15 +2,23 @@ DOCKERHUB=effecthandlers/effect-handlers
 
 bench:
 	make -C benchmarks/eff ; cp benchmarks/eff/results.csv eff_results.csv
-	make -C benchmarks/effekt ; cp benchmarks/effekt/results.csv effekt_results.csv
 	make -C benchmarks/koka ; cp benchmarks/koka/results.csv koka_results.csv
 	make -C benchmarks/ocaml ; cp benchmarks/ocaml/results.csv ocaml_results.csv
+	make -C benchmarks/effekt ; cp benchmarks/effekt/results.csv effekt_results.csv
+	make -C benchmarks/sml ; cp benchmarks/sml/results.csv sml_results.csv
+
+test:
+	make -C benchmarks/eff test
+	make -C benchmarks/koka test
+	make -C benchmarks/ocaml test
+	make -C benchmarks/effekt test
+	make -C benchmarks/sml test
 
 clean:
 	make -C benchmarks/eff clean
-	make -C benchmarks/effekt clean
 	make -C benchmarks/koka clean
 	make -C benchmarks/ocaml clean
+	make -C benchmarks/effekt clean
 	make -C benchmarks/sml clean
 
 all: bench_eff bench_hia bench_koka bench_links bench_ocaml

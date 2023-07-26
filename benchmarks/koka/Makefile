@@ -1,5 +1,5 @@
-bench: build
-	hyperfine --export-csv results.csv \
+bench:
+	hyperfine --warmup 10 --export-csv results.csv \
 		'countdown/main 200000000' \
 		'fibonacci_recursive/main 42' \
 		'product_early/main 100000' \
@@ -7,9 +7,9 @@ bench: build
 		'nqueens/main 12' \
 		'generator/main 25' \
 		'tree_explore/main 16' \
-		'triples/main 300 300' \
+		'triples/main 300' \
 		'parsing_dollars/main 20000' \
-		'resume_nontail/main 20000' \
+		'resume_nontail/main 10000' \
 		'handler_sieve/main 60000'
 
 test: build
