@@ -44,7 +44,7 @@ fun run(n : int): div int
   sum(0, generate({ iterate(make(n))}))
 
 pub fun main()
-  val n = get-args().head("").parse-int-default(5)
+  val n = get-args().head("").parse-int.default(5)
   val r = run(n)
   println(r)
 
