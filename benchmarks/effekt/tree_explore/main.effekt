@@ -14,8 +14,8 @@ def maximum(l: List[Int]): Int =
   }
 
 
-effect Choose {
-  def choose(): Boolean
+interface Choose {
+  def choose(): Bool
 }
 
 type Tree {

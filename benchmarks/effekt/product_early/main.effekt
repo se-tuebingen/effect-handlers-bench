@@ -3,7 +3,7 @@ import immutable/option
 import io/args
 import text/string
 
-effect Abort {
+interface Abort {
   def done[A](i: Int): A
 }
 
