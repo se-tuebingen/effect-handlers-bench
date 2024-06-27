@@ -14,7 +14,7 @@ Output: 8
 
 Input: 42
 
-Output: 43349443k
+Output: 267914296
 
 ## Metadata
 
