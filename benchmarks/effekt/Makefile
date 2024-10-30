@@ -22,15 +22,15 @@ test: build
 	cd resume_nontail ; ./main 5 > actual ; echo 37 > expected ; diff expected actual
 
 build:
-	cd countdown ; effekt.sh --backend ml --compile main.effekt ; mlton -default-type int64 -output main out/main.sml
-	cd fibonacci_recursive ; effekt.sh --backend ml --compile main.effekt ; mlton -default-type int64 -output main out/main.sml
-	cd product_early ; effekt.sh --backend ml --compile main.effekt ; mlton -default-type int64 -output main out/main.sml
-	cd iterator ; effekt.sh --backend ml --compile main.effekt ; mlton -default-type int64 -output main out/main.sml
-	cd nqueens ; effekt.sh --backend ml --compile main.effekt ; mlton -default-type int64 -output main out/main.sml
-	cd tree_explore ; effekt.sh --backend ml --compile main.effekt ; mlton -default-type int64 -output main out/main.sml
-	cd triples ; effekt.sh --backend ml --compile main.effekt ; mlton -default-type int64 -output main out/main.sml
-	cd parsing_dollars ; effekt.sh --backend ml --compile main.effekt ; mlton -default-type int64 -output main out/main.sml
-	cd resume_nontail ; effekt.sh --backend ml --compile main.effekt ; mlton -default-type int64 -output main out/main.sml
+	cd countdown ; effekt.sh --backend llvm --build main.effekt ; cp ./out/main main
+	cd fibonacci_recursive ; effekt.sh --backend llvm --build main.effekt ; cp ./out/main main
+	cd product_early ; effekt.sh --backend llvm --build main.effekt ; cp ./out/main main
+	cd iterator ; effekt.sh --backend llvm --build main.effekt ; cp ./out/main main
+	cd nqueens ; effekt.sh --backend llvm --build main.effekt ; cp ./out/main main
+	cd tree_explore ; effekt.sh --backend llvm --build main.effekt ; cp ./out/main main
+	cd triples ; effekt.sh --backend llvm --build main.effekt ; cp ./out/main main
+	cd parsing_dollars ; effekt.sh --backend llvm --build main.effekt ; cp ./out/main main
+	cd resume_nontail ; effekt.sh --backend llvm --build main.effekt ; cp ./out/main main
 
 clean:
 	-rm -r */out/
