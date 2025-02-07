@@ -5,6 +5,7 @@ bench: build
 		'product_early/main 100000' \
 		'iterator/main 40000000' \
 		'nqueens/main 12' \
+		'generator/main 25' \
 		'tree_explore/main 16' \
 		'triples/main 300' \
 		'parsing_dollars/main 20000' \
@@ -16,6 +17,7 @@ test: build
 	cd product_early ; ./main 5 > actual ; echo 0 > expected ; diff expected actual
 	cd iterator ; ./main 5 > actual ; echo 15 > expected ; diff expected actual
 	cd nqueens ; ./main 5 > actual ; echo 10 > expected ; diff expected actual
+	cd generator ; ./main 5 > actual ; echo 57 > expected ; diff expected actual
 	cd tree_explore ; ./main 5 > actual ; echo 946 > expected ; diff expected actual
 	cd triples ; ./main 10 > actual ; echo 779312 > expected ; diff expected actual
 	cd parsing_dollars ; ./main 10 > actual ; echo 55 > expected ; diff expected actual
@@ -27,6 +29,7 @@ build:
 	cd product_early ; effekt.sh --backend llvm --build main.effekt ; cp ./out/main main
 	cd iterator ; effekt.sh --backend llvm --build main.effekt ; cp ./out/main main
 	cd nqueens ; effekt.sh --backend llvm --build main.effekt ; cp ./out/main main
+	cd generator ; effekt.sh --backend llvm --build main.effekt ; cp ./out/main main
 	cd tree_explore ; effekt.sh --backend llvm --build main.effekt ; cp ./out/main main
 	cd triples ; effekt.sh --backend llvm --build main.effekt ; cp ./out/main main
 	cd parsing_dollars ; effekt.sh --backend llvm --build main.effekt ; cp ./out/main main
