@@ -9,7 +9,8 @@ bench: build
 		'tree_explore/main 16' \
 		'triples/main 300' \
 		'parsing_dollars/main 20000' \
-		'resume_nontail/main 20000'
+		'resume_nontail/main 20000' \
+		'handler_sieve/main 60000'
 
 test: build
 	cd countdown ; ./main 5 > actual ; echo 0 > expected ; diff expected actual
@@ -22,6 +23,7 @@ test: build
 	cd triples ; ./main 10 > actual ; echo 779312 > expected ; diff expected actual
 	cd parsing_dollars ; ./main 10 > actual ; echo 55 > expected ; diff expected actual
 	cd resume_nontail ; ./main 5 > actual ; echo 37 > expected ; diff expected actual
+	cd handler_sieve ; ./main 10 > actual ; echo 17 > expected ; diff expected actual
 
 build:
 	cd countdown ; effekt.sh --backend llvm --build main.effekt ; cp ./out/main main
@@ -34,6 +36,7 @@ build:
 	cd triples ; effekt.sh --backend llvm --build main.effekt ; cp ./out/main main
 	cd parsing_dollars ; effekt.sh --backend llvm --build main.effekt ; cp ./out/main main
 	cd resume_nontail ; effekt.sh --backend llvm --build main.effekt ; cp ./out/main main
+	cd handler_sieve ; effekt.sh --backend llvm --build main.effekt ; cp ./out/main main
 
 clean:
 	-rm -r */out/
