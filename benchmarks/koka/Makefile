@@ -9,7 +9,6 @@ bench: build
 		'tree_explore/main 16' \
 		'triples/main 300 300' \
 		'parsing_dollars/main 20000' \
-		'resume_nontail/main 20000' \
 		'handler_sieve/main 60000'
 
 test: build
