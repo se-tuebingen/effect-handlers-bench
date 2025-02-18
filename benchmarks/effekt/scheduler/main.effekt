@@ -1,0 +1,95 @@
+import exnlist
+import exndequeue
+import args
+import bench
+
+interface Tick {
+  def tick(): Unit
+}
+
+interface Process {
+  def yield(): Unit
+  def exit(): Nothing
+  def fork { p: () => Unit / Process }: Bool
+}
+
+def scheduler { prog: => Unit / Process }: Unit / Tick = region this {
+  var queue: Dequeue[() => Unit at {this, prog}] in this = emptyQueue();
+
+  def driver(): Unit =
+    try {
+      queue.popBack match {
+        case (k, q) =>
+          queue = q
+          k();
+          driver()
+      }
+    } with NoSuchElementException {
+      def throwNSE() = ()
+    }
+
+  def spawn(prog1: () => Unit / Process at {this, prog} ): Unit = {
+    try { prog1() } with Process {
+      def yield() = {
+        queue = queue.pushFront(fun() { resume(()) })
+      }
+      def fork() = {
+        queue = queue.pushFront(box { resume { {p} => false } })
+        // here we first run it in its original place and then also handle Process
+        spawn(box { resume { {p} => p(); true }})
+      }
+      def exit() = ()
+    }
+  }
+
+  spawn(prog)
+  driver()
+}
+
+def job(): Unit / Process = {
+  do yield ()
+  do exit() // FIX this is crucial since fork is not implemented correctly
+}
+
+def jobs(n_jobs: Int): Unit / {Process, Tick} = {
+  var i = 0;
+  while (i < n_jobs) {
+    do tick()
+    if (do fork {job}) {
+      do exit()
+    }
+    i = i + 1
+  }
+}
+
+def run(n: Int): Int = {
+  var i = 0;
+  var a = 0;
+  // NB: The loop count is reduced from 1000
+  while (i < 1) {
+    try {
+      scheduler { jobs(n) }
+    } with Tick {
+      def tick() = {
+        a = a + 1;
+        resume( () );
+      }
+    }
+    i = i + 1
+  }
+  a
+}
+
+def main() = ignore[WrongFormat] {commandLineArgs() match {
+  case Nil() => println("Expects one argument")
+  case Cons(x, Cons(y, Nil())) =>
+    println("Measuring internal running time")
+    val i = x.toInt; var r = 0; val t = timed{ r = run(i); };
+    println("Nanosecond used: " ++ show(t))
+    println(r)
+  case Cons(x, Nil()) =>
+    val i = x.toInt; val r = run(i);
+    println(r)
+  case other => println("Expects one argument, not '" ++ show(size(other)) ++ "'")
+}
+}

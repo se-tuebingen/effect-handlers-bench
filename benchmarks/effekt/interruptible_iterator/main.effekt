@@ -1,0 +1,69 @@
+import list
+import args
+import bench
+
+effect Yield(value: Int): Unit / { Replace, Behead }
+effect Replace(value: Int): Unit
+effect Behead(): Unit
+
+def range(lo: Int, hi: Int): List[Int] = {
+  build(hi-lo+1) { i => lo + i }
+}
+
+def iter(l: List[Int]): List[Int] / { Yield, Behead } =  {
+
+    def loop(it: List[Int]): List[Int] / { Yield, Behead } = it match {
+      case Cons(hd, tl) =>
+        val newHd = try {
+          do Yield(hd); hd
+        } with Replace { n =>
+          n
+        }
+        try { Cons(newHd, loop(tl)) } with Behead {
+          resume(()).drop(1)
+        }
+      case Nil() => Nil()
+    }
+    loop(l)
+}
+
+def run(n: Int) : Int = {
+    val lst = range(0 - n, n);
+    var beheaded = false;
+    val res = try { lst.iter }
+        with Yield { x =>
+        resume { if (x < 0) do Behead() else do Replace(x * 2) }
+        }
+        with Behead { () =>
+            beheaded = true;
+            resume(())
+        };
+    sum(if (beheaded) res.drop(1) else res)
+}
+
+def step(i: Int, acc: Int, n_jobs: Int): Int = {
+  if (i == 0) {
+    acc
+  } else {
+    step(i - 1, run(n_jobs) + acc, n_jobs)
+  }
+}
+
+def repeat(n_jobs: Int): Int = {
+  // NB: The loop count is reduced from 1000
+  step(1, 0, n_jobs)
+}
+
+def main() = ignore[WrongFormat] {commandLineArgs() match {
+  case Nil() => println("Expects one argument")
+  case Cons(x, Cons(y, Nil())) =>
+    println("Measuring internal running time")
+    val i = x.toInt; var r = 0; val t = timed{ r = repeat(i); };
+    println("Nanosecond used: " ++ show(t))
+    println(r)
+  case Cons(x, Nil()) =>
+    val i = x.toInt; val r = repeat(i);
+    println(r)
+  case other => println("Expects one argument, not '" ++ show(size(other)) ++ "'")
+}
+}
