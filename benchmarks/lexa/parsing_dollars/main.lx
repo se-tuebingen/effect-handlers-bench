@@ -1,0 +1,110 @@
+effect Read {
+    dcl read
+}
+
+effect Emit {
+    dcl emit
+}
+
+effect Stop {
+    dcl stop
+}
+
+def newline() {
+    10
+}
+
+def is_newline(c) {
+    c == 10
+}
+
+def dollar() {
+    36
+}
+
+def is_dollar(c) {
+    c == 36
+}
+
+def sum(action, n) {
+    val s = newref {0};
+    handle {
+        action(emit_stub, n)
+    } with emit_stub: Emit {
+        def emit(e) {
+            s[0] := s[0] + e
+        }
+    };
+    s[0]
+}
+
+def catch(action, emit_stub, n) {
+    handle {
+        action(stop_stub, emit_stub, n)
+    } with stop_stub: Stop {
+        exc stop(_) { 0 }
+    }
+}
+
+def feed(n, action, stop_stub, emit_stub) {
+    val i_ref = newref {0};
+    val j_ref = newref {0};
+    handle {
+        action(read_stub, emit_stub, stop_stub)
+    }
+    with read_stub: Read {
+        def read() {
+            val i = i_ref[0];
+            val j = j_ref[0];
+            if i > n then
+                raise stop_stub.stop(0)
+            else
+                (if j == 0 then
+                    i_ref[0] := i + 1;
+                    j_ref[0] := i + 1;
+                    newline()
+                else
+                    (j_ref[0] := j - 1;
+                    dollar()))    
+        }
+    
+    }
+}
+
+def parse(a, read_stub, emit_stub, stop_stub) {
+    val c = raise read_stub.read(0);
+    if is_dollar(c) then
+        parse(a + 1, read_stub, emit_stub, stop_stub)
+    else
+        if is_newline(c) then
+            raise emit_stub.emit(a);
+            parse(0, read_stub, emit_stub, stop_stub)
+        else
+            raise stop_stub.stop(0)
+}
+
+def feed_action(read_stub, emit_stub, stop_stub) {
+    parse(0, read_stub, emit_stub, stop_stub)
+}
+
+def sum_action(emit_stub, n) {
+    val catch_action_i64 = catch_action;
+    catch(catch_action_i64, emit_stub, n)
+}
+
+def catch_action(stop_stub, emit_stub, n) {
+    val feed_action_i64 = feed_action;
+    feed(n, feed_action_i64, stop_stub, emit_stub)
+}
+
+def run(n) {
+    val sum_action_i64 = sum_action;
+    sum(sum_action_i64, n)
+}
+
+def main() {
+    val n = ~readInt();
+    val run_result = run(n);
+    ~printInt(run_result);
+    0
+}

@@ -1,0 +1,107 @@
+effect Scheduler {
+    dcl yield
+    dcl fork
+}
+
+def spawn(job_closure, suspend_closure, runnext_closure) {
+    handle {job_closure, suspend_closure, runnext_closure}
+        body
+    with scheduler: Scheduler;
+    val runnext_func = runnext_closure[0];
+    val job_queue = runnext_closure[1];
+    runnext_func(job_queue)
+}
+
+obj scheduler(env) {
+    hdl_1 yield(_, k) {
+        val suspend_closure = env[1];
+        val suspend_func = suspend_closure[0];
+        val job_queue = suspend_closure[1];
+        suspend_func(job_queue, k);
+        val runnext_closure = env[2];
+        val runnext_func = runnext_closure[0];
+        val job_queue = runnext_closure[1];
+        runnext_func(job_queue)
+    }
+
+    hdl_1 fork(newjob_closure, k) {
+        val suspend_closure = env[1];
+        val suspend_func = suspend_closure[0];
+        val suspend_env = suspend_closure[1];
+        suspend_func(suspend_env, k);
+        val arg1 = env[1];
+        val arg2 = env[2];
+        spawn(newjob_closure, arg1, arg2)
+    }
+}
+
+def job(state, sch_stub) {
+    raise sch_stub.yield 0;
+    val v1 = state[0];
+    val res1 = v1 + 1;
+    state[0] := res1;
+    raise sch_stub.yield 0;
+    val v3 = state[0];
+    val res2 = v3 + 1;
+    state[0] := res2
+}
+
+def loop(i, job_closure, sch_stub) {
+    val cond = i == 0;
+    if cond then
+        0
+    else
+        raise sch_stub.fork job_closure;
+        val arg1 = i - 1;
+        loop(arg1, job_closure, sch_stub)
+}
+
+def entry(env, sch_stub) {
+    val n = env[0];
+    val job_closure = env[1];
+    loop(n, job_closure, sch_stub)
+}
+
+def suspend(job_queue, k) {
+    ~queueEnq(job_queue, k)
+}
+
+def runnext(job_queue) {
+    val cond = ~queueIsEmpty(job_queue);
+    if cond then
+        0
+    else
+        val k = ~queueDeq(job_queue);
+        resume_final k 0
+}
+
+def body(env, sch_stub) {
+    val job_closure = env[0];
+    val job_func = job_closure[0];
+    val job_env = job_closure[1];
+    job_func(job_env, sch_stub)
+}
+
+def startScheduler(init_closure) {
+    val job_queue = ~queueMake();
+    val suspend_closure = newref {suspend, job_queue};
+    val runnext_closure = newref {runnext, job_queue};
+    spawn(init_closure, suspend_closure, runnext_closure)
+}
+
+def run(n) {
+    val state = newref {0};
+    val job_closure = newref {job, state};
+    val entry_env = newref {n, job_closure};
+    val entry_closure = newref {entry, entry_env};
+        startScheduler(entry_closure);
+        state[0]
+}
+
+
+def main() {
+    val arg1 = ~readInt();
+    val arg2 = run(arg1);
+    ~printInt(arg2);
+    0
+}

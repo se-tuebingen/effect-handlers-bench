@@ -1,0 +1,29 @@
+effect Emit {
+    dcl emit
+}
+
+def range(l, u, emit_stub) {
+    if l > u then
+        0
+    else
+        (raise emit_stub.emit(l);
+        range(l + 1, u, emit_stub))
+}
+
+def run(n) {
+    val s = newref {0};
+    handle {
+        range(0, n, emit_stub)
+    } with emit_stub: Emit {
+        def emit(e) {
+            s[0] := s[0] + e;
+            0
+        }        
+    };
+    s[0]
+}
+
+def main() {
+    ~printInt(run(~readInt()));
+    0
+}

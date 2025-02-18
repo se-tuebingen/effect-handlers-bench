@@ -1,0 +1,97 @@
+effect Process {
+    dcl yield
+    dcl fork
+}
+
+effect Tick {
+    dcl tick
+}
+
+effect Exn {
+    dcl throw
+}
+
+def queueDeqExn(q, exn_stub) {
+    if ~queueIsEmpty(q) then
+        raise exn_stub.throw(0)
+    else
+        ~queueDeq(q)
+}
+
+def job(process_stub) {
+    raise process_stub.yield(0)
+}
+
+def jobs(i, process_stub, tick_stub) {
+    if i == 0 then
+        0
+    else
+        (raise process_stub.fork(job);
+        raise tick_stub.tick(0);
+        jobs(i - 1, process_stub, tick_stub))
+}
+
+def driver(job_queue) {
+    handle {
+        val k = queueDeqExn(job_queue, exn_stub);
+        resume_final k 0;
+        driver(job_queue)
+    } with exn_stub: Exn {
+        exc throw(_) {
+            0
+        }
+    };
+    0
+}
+
+def spawn(f, job_queue) {
+    handle {
+        f(process_stub)
+    } with process_stub : Process {
+        hdl_1 yield(_, k) {
+            ~queueEnq(job_queue, k)
+        }
+
+        hdl_1 fork(g, k) {
+            ~queueEnq(job_queue, k);
+            spawn(g, job_queue)
+        }
+    }
+}
+
+def scheduler(f) {
+    val job_queue = ~queueMake ();
+    spawn(f, job_queue);
+    driver(job_queue)
+}
+
+def run(n_jobs, init) {
+    val c = newref {init};
+    handle {
+        scheduler (fun (process_stub) { jobs(n_jobs, process_stub, tick_stub) })
+    } with tick_stub : Tick {
+        def tick(_) {
+            c[0] := c[0] + 1;
+            0
+        }
+    };
+    c[0]
+}
+
+def step(i, acc, n_jobs) {
+    if i == 0 then
+        acc
+    else
+        step(i - 1, run(n_jobs, acc), n_jobs)
+}
+
+def repeat(n_jobs) {
+    step(1000, 0, n_jobs)
+}
+
+def main() {
+    val arg1 = ~readInt();
+    val arg2 = repeat(arg1);
+    ~printInt(arg2);
+    0
+}

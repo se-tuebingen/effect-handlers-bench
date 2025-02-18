@@ -1,0 +1,34 @@
+effect State {
+    dcl get
+    dcl set
+}
+
+def countdown(state_stub) {
+    val i = raise state_stub.get(0);
+    if i == 0 then
+        i
+    else
+        (raise state_stub.set(i-1);
+        countdown(state_stub))
+}
+
+def run(n) {
+    val s = newref {n};
+    handle {
+        countdown(state_stub)
+    } with state_stub: State {
+        def get(_) { 
+            s[0]
+        }
+
+        def set(i) {
+            s[0] := i;
+            0
+        }
+    }
+}
+
+def main() {
+    ~printInt(run(~readInt()));
+    0
+}
