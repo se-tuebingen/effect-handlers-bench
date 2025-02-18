@@ -12,7 +12,10 @@ def maximum(l: List[Int]): Int =
     case Cons(x, Nil()) => x
     case Cons(x, xs) => max(x, maximum(xs))
   }
-
+def append(xs: List[Int], ys: List[Int]): List[Int] = xs match {
+  case Nil() => ys
+  case Cons(x, xs) => Cons(x, append(xs, ys))
+}
 
 interface Choose {
   def choose(): Bool
