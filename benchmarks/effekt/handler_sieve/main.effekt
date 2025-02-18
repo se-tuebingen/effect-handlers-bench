@@ -1,0 +1,38 @@
+import list
+import option
+import args
+import string
+
+effect prime(e: Int): Bool
+
+def primes(i: Int, n: Int, a: Int): Int / prime =
+  if (i >= n) {
+    a
+  } else if(do prime(i)) {
+    try {
+      primes(i + 1, n, a + i)
+    } with prime { (e: Int) =>
+      if (mod(e, i) == 0) {
+        resume(false)
+      } else {
+        resume(do prime(e))
+      }
+    }
+  } else {
+    primes(i + 1, n, a)
+  }
+
+def run(n: Int) =
+  try {
+    primes(2, n, 0)
+  } with prime { (e: Int) =>
+    resume(true)
+  }
+
+def main() = {
+  val n = on[WrongFormat].default{10}{
+    commandLineArgs().headOption.getOrElse{""}.toInt
+  }
+  val r = run(n);
+  println(r)
+}

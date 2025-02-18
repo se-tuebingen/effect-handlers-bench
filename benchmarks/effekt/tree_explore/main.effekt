@@ -1,7 +1,7 @@
-import immutable/list
-import immutable/option
-import io/args
-import text/string
+import list
+import option
+import args
+import string
 
 
 def abs(n: Int): Int = if (n < 0) 0 - n else n
@@ -12,10 +12,13 @@ def maximum(l: List[Int]): Int =
     case Cons(x, Nil()) => x
     case Cons(x, xs) => max(x, maximum(xs))
   }
+def append(xs: List[Int], ys: List[Int]): List[Int] = xs match {
+  case Nil() => ys
+  case Cons(x, xs) => Cons(x, append(xs, ys))
+}
 
-
-effect Choose {
-  def choose(): Boolean
+interface Choose {
+  def choose(): Bool
 }
 
 type Tree {
@@ -67,7 +70,9 @@ def run(n: Int) = {
 }
 
 def main() = {
-  val n = commandLineArgs().headOption.getOrElse { "" }.toInt.getOrElse { 5 };
+  val n = on[WrongFormat].default{5}{
+    commandLineArgs().headOption.getOrElse{""}.toInt
+  }
   val r = run(n);
   println(r)
 }
