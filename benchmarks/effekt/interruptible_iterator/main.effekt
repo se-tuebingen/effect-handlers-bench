@@ -10,27 +10,26 @@ def range(lo: Int, hi: Int): List[Int] = {
   build(hi-lo+1) { i => lo + i }
 }
 
-def iter(l: List[Int]): List[Int] / { Yield, Behead } =  {
-
-    def loop(it: List[Int]): List[Int] / { Yield, Behead } = it match {
-      case Cons(hd, tl) =>
-        val newHd = try {
-          do Yield(hd); hd
-        } with Replace { n =>
-          n
-        }
-        try { Cons(newHd, loop(tl)) } with Behead {
-          resume(()).drop(1)
-        }
-      case Nil() => Nil()
+def loop(it: List[Int]): List[Int] / { Yield, Behead } = it match {
+  case Cons(hd, tl) =>
+    val newHd = try {
+      do Yield(hd); hd
+    } with Replace { n =>
+      n
     }
-    loop(l)
+    var beheaded = false;
+    val newTail = try { loop(tl) } with Behead {
+      beheaded = true; resume(())
+    }
+    if (beheaded) {Cons(newHd, newTail.drop(1))}
+    else {Cons(newHd, newTail)}
+  case Nil() => Nil()
 }
 
 def run(n: Int) : Int = {
     val lst = range(0 - n, n);
     var beheaded = false;
-    val res = try { lst.iter }
+    val res = try { lst.loop }
         with Yield { x =>
         resume { if (x < 0) do Behead() else do Replace(x * 2) }
         }
@@ -51,7 +50,7 @@ def step(i: Int, acc: Int, n_jobs: Int): Int = {
 
 def repeat(n_jobs: Int): Int = {
   // NB: The loop count is reduced from 1000
-  step(1, 0, n_jobs)
+  step(1000, 0, n_jobs)
 }
 
 def main() = ignore[WrongFormat] {commandLineArgs() match {
