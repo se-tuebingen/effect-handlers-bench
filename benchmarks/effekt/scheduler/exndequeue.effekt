@@ -1,77 +1,82 @@
 module exndequeue
 
-import exnlist
+import ref
 
-// An implementation of a functional dequeue, using Okasaki's
-// bankers dequeue implementation.
-//
-// Translation from the Haskell implementation:
-//   https://hackage.haskell.org/package/dequeue-0.1.12/docs/src/Data-Dequeue.html#Dequeue
-record Dequeue[R](front: List[R], frontSize: Int, rear: List[R], rearSize: Int)
+effect Exception: Nothing
 
-def emptyQueue[R](): Dequeue[R] = Dequeue(ENil(), 0, ENil(), 0)
-
-def isEmpty[R](dq: Dequeue[R]): Bool = dq match {
-    case Dequeue(f, fs, r, rs) => (fs == 0) && (rs == 0)
+type QueueCell[R] {
+  QueueNil();
+  QueueCons(cell: Ref[(R, QueueCell[R])])
 }
 
-def size[R](dq: Dequeue[R]): Int = dq match {
-    case Dequeue(f, fs, r, rs) => fs + rs
+interface Queue[R] {
+  def clear(): Unit
+  def enqueue(x: R): Unit
+  def dequeue(): R / Exception
+  def peek(): R / Exception
+  def isEmpty(): Bool
 }
 
-def first[R](dq: Dequeue[R]): R / NoSuchElementException = dq match {
-    case Dequeue(f, fs, r, rs) =>
-      if ((fs == 0) && (rs == 1)) { r.exnHeadOption }
-      else { f.exnHeadOption }
-}
+def newQueue[R]{r: Region}{e: Exception}: Queue[R] at {r, global, e} = {
+  var first in r = QueueNil()
+  var last in r = QueueNil()
+  var size in r = 0
+  new Queue[R] {
 
-def last[R](dq: Dequeue[R]): R / NoSuchElementException = dq match {
-    case Dequeue(f, fs, r, rs) =>
-      if ((fs == 1) && (rs == 0)) { f.exnHeadOption }
-      else { r.exnHeadOption }
-}
+    def clear() = {
+      first = QueueNil()
+      last = QueueNil()
+      size = 0
+    }
 
-def check[R](dq: Dequeue[R]): Dequeue[R] = dq match {
-    case Dequeue(f, fs, r, rs) =>
-        val c = 4;
-        val size1 = (fs + rs) / 2;
-        val size2 = (fs + rs) - size1;
-
-        if (fs > c * rs + 1) {
-            val front = f.take(size1);
-            val rear = r.append(f.drop(size1).reverse);
-            Dequeue(front, size1, rear, size2)
-        } else if (rs > c * fs + 1) {
-            val front = f.append(r.drop(size1).reverse);
-            val rear = r.take(size1);
-            Dequeue(front, size2, rear, size1)
-        } else {
-            dq
+    def enqueue(x: R) = {
+      val newCell = allocate()
+      newCell.set((x, QueueNil()))
+      val newCons = QueueCons(newCell)
+      last match {
+        case QueueNil() => {
+          first = newCons;
+          last = newCons;
+          size = 1
         }
-}
+        case QueueCons(lastCell) => {
+          size = size + 1;
+          lastCell.set((lastCell.get().first, newCons))
+          last = newCons
+        }
+      }
+    }
 
-def pushFront[R](dq: Dequeue[R], el: R): Dequeue[R] = dq match {
-    case Dequeue(f, fs, r, rs) => Dequeue(ECons(el, f), fs + 1, r, rs).check
-}
+    def dequeue() = {
+      first match {
+        case QueueNil() => e.Exception()
+        case QueueCons(firstCell) => {
+          val next = firstCell.get().second
+          next match {
+            case QueueNil() => {
+              first = QueueNil()
+              last = QueueNil()
+              size = 0
+              firstCell.get().first
+            }
+            case QueueCons(nextCell) => {
+              first = next;
+              size = size - 1;
+              firstCell.get().first
+            }
+          }
+        }
+      }
+    }
 
-def popFront[R](dq: Dequeue[R]): Option[(R, Dequeue[R])] = dq match {
-    case Dequeue(ENil(), fs, ECons(x, ENil()), rs) =>
-        Some((x, emptyQueue()))
-    case Dequeue(ENil(), fs, r, rs) =>
-        None()
-    case Dequeue(ECons(x, rest), fs, r, rs) =>
-        Some((x, Dequeue(rest, fs - 1, r, rs).check))
-}
+    def peek() = {
+      first match {
+        case QueueNil() => e.Exception()
+        case QueueCons(cell) => cell.get().first
+      }
+    }
 
-def pushBack[R](dq: Dequeue[R], el: R): Dequeue[R] = dq match {
-    case Dequeue(f, fs, r, rs) => Dequeue(f, fs, ECons(el, r), rs + 1).check
-}
+    def isEmpty() = size == 0
 
-def popBack[R](dq: Dequeue[R]): (R, Dequeue[R]) / NoSuchElementException = dq match {
-    case Dequeue(ECons(x, ENil()), fs, ENil(), rs) =>
-        (x, emptyQueue())
-    case Dequeue(f, fs, ENil(), rs) =>
-        do throwNSE()
-    case Dequeue(f, fs, ECons(x, rest), rs) =>
-        (x, Dequeue(f, fs, rest, rs - 1).check)
+  }
 }

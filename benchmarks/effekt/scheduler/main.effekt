@@ -1,4 +1,4 @@
-import exnlist
+
 import exndequeue
 import args
 import bench
@@ -10,85 +10,82 @@ interface Tick {
 interface Process {
   def yield(): Unit
   def exit(): Nothing
-  def fork { p: () => Unit / Process }: Bool
+  def fork (p: () => Unit / Process at {}): Unit
 }
 
 def scheduler { prog: => Unit / Process }: Unit / Tick = region this {
-  var queue: Dequeue[() => Unit at {this, prog}] in this = emptyQueue();
+  try {
+    val queue: Queue[() => Unit at {this, prog, e, global}] at {this, e, global} = box newQueue{this}{e};
 
-  def driver(): Unit =
-    try {
-      queue.popBack match {
-        case (k, q) =>
-          queue = q
-          k();
-          driver()
-      }
-    } with NoSuchElementException {
-      def throwNSE() = ()
+    def driver(): Unit = {
+      (queue.dequeue)();
+      driver()
     }
 
-  def spawn(prog1: () => Unit / Process at {this, prog} ): Unit = {
-    try { prog1() } with Process {
-      def yield() = {
-        queue = queue.pushFront(fun() { resume(()) })
+    def spawn(prog1: () => Unit / Process at {this, prog, e, global} ): Unit = {
+      try { prog1() } with Process {
+        def yield() = {
+          queue.enqueue(box { resume(()) })
+        }
+        def fork( p: () => Unit / Process at {} ) = {
+          queue.enqueue(box { resume(()) })
+          // here we first run it in its original place and then also handle Process
+          spawn(p)
+        }
+        def exit() = ()
       }
-      def fork() = {
-        queue = queue.pushFront(box { resume { {p} => false } })
-        // here we first run it in its original place and then also handle Process
-        spawn(box { resume { {p} => p(); true }})
-      }
-      def exit() = ()
     }
-  }
 
-  spawn(prog)
-  driver()
+    spawn(prog)
+    driver()
+    
+  } with e: Exception {()}
 }
 
 def job(): Unit / Process = {
   do yield ()
-  do exit() // FIX this is crucial since fork is not implemented correctly
 }
 
-def jobs(n_jobs: Int): Unit / {Process, Tick} = {
-  var i = 0;
-  while (i < n_jobs) {
+def jobs(i: Int): Unit / {Process, Tick} = {
+  if (i == 0) 
+    ()
+  else {
+    do fork (job)
     do tick()
-    if (do fork {job}) {
-      do exit()
-    }
-    i = i + 1
+    jobs(i - 1)
   }
 }
 
-def run(n: Int): Int = {
-  var i = 0;
-  var a = 0;
-  // NB: The loop count is reduced from 1000
-  while (i < 1) {
-    try {
-      scheduler { jobs(n) }
-    } with Tick {
-      def tick() = {
-        a = a + 1;
-        resume( () );
-      }
+def run(n: Int, init: Int) = {
+  var c = init
+  try {
+    scheduler { jobs(n) }
+  } with Tick {
+    def tick() = {
+      c = c + 1
+      resume(())
     }
-    i = i + 1
   }
-  a
+  c
+}
+
+def step(i: Int, acc: Int, n: Int): Int = {
+  if (i == 0) {
+    acc
+  } else {
+    step(i - 1, run(n, acc), n)
+  }
 }
 
 def main() = ignore[WrongFormat] {commandLineArgs() match {
   case Nil() => println("Expects one argument")
   case Cons(x, Cons(y, Nil())) =>
     println("Measuring internal running time")
-    val i = x.toInt; var r = 0; val t = timed{ r = run(i); };
+    val i = x.toInt; var r = 0; val t = timed{ r = step(1000, 0, i); };
     println("Nanosecond used: " ++ show(t))
     println(r)
   case Cons(x, Nil()) =>
-    val i = x.toInt; val r = run(i);
+    val i = x.toInt; val r = step(1000, 0, i);
     println(r)
   case other => println("Expects one argument, not '" ++ show(size(other)) ++ "'")
 }
