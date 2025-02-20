@@ -5,6 +5,7 @@ bench: build
 		'product_early/main 100000' \
 		'iterator/main 40000000' \
 		'nqueens/main 12' \
+		'generator/main 25' \
 		'tree_explore/main 16' \
 		'triples/main 300' \
 		'resume_nontail/main 10000' \
@@ -19,6 +20,7 @@ test: build
 	cd product_early ; ./main 5 > actual ; echo 0 > expected ; diff expected actual
 	cd iterator ; ./main 5 > actual ; echo 15 > expected ; diff expected actual
 	cd nqueens ; ./main 5 > actual ; echo 10 > expected ; diff expected actual
+	cd generator ; ./main 5 > actual ; echo 57 > expected ; diff expected actual
 	cd tree_explore ; ./main 5 > actual ; echo 946 > expected ; diff expected actual
 	cd triples ; ./main 10 > actual ; echo 779312 > expected ; diff expected actual
 	cd resume_nontail ; ./main 5 > actual ; echo 37 > expected ; diff expected actual
@@ -29,17 +31,18 @@ test: build
 
 build:
 	echo "Building programs..."
-	cd countdown ; opam exec --switch=4.12.0+domains+effects -- ocamlopt -O3 -o main main.ml
-	cd fibonacci_recursive ; opam exec --switch=4.12.0+domains+effects -- ocamlopt -O3 -o main main.ml
-	cd product_early ; opam exec --switch=4.12.0+domains+effects -- ocamlopt -O3 -o main main.ml
-	cd iterator ; opam exec --switch=4.12.0+domains+effects -- ocamlopt -O3 -o main main.ml
-	cd nqueens ; opam exec --switch=4.12.0+domains+effects -- ocamlopt -O3 -o main main.ml
-	cd tree_explore ; opam exec --switch=4.12.0+domains+effects -- ocamlopt -O3 -o main main.ml
-	cd triples ; opam exec --switch=4.12.0+domains+effects -- ocamlopt -O3 -o main main.ml
-	cd resume_nontail ; opam exec --switch=4.12.0+domains+effects -- ocamlopt -O3 -o main main.ml
-	cd parsing_dollars ; opam exec --switch=4.12.0+domains+effects -- ocamlopt -O3 -o main main.ml
-	cd handler_sieve ; opam exec --switch=4.12.0+domains+effects -- ocamlopt -O3 -o main main.ml
-	cd scheduler ; opam exec --switch=4.12.0+domains+effects -- ocamlopt -O3 -o main main.ml
+	cd countdown ; opam exec -- ocamlfind ocamlopt -package multicont -linkpkg -O3 -o main main.ml
+	cd fibonacci_recursive ; opam exec -- ocamlfind ocamlopt -package multicont -linkpkg -O3 -o main main.ml
+	cd product_early ; opam exec -- ocamlfind ocamlopt -package multicont -linkpkg -O3 -o main main.ml
+	cd iterator ; opam exec -- ocamlfind ocamlopt -package multicont -linkpkg -O3 -o main main.ml
+	cd nqueens ; opam exec -- ocamlfind ocamlopt -package multicont -linkpkg -O3 -o main main.ml
+	cd generator ; opam exec -- ocamlfind ocamlopt -package multicont -linkpkg -O3 -o main main.ml
+	cd tree_explore ; opam exec -- ocamlfind ocamlopt -package multicont -linkpkg -O3 -o main main.ml
+	cd triples ; opam exec -- ocamlfind ocamlopt -package multicont -linkpkg -O3 -o main main.ml
+	cd resume_nontail ; opam exec -- ocamlfind ocamlopt -package multicont -linkpkg -O3 -o main main.ml
+	cd parsing_dollars ; opam exec -- ocamlfind ocamlopt -package multicont -linkpkg -O3 -o main main.ml
+	cd handler_sieve ; opam exec -- ocamlfind ocamlopt -package multicont -linkpkg -O3 -o main main.ml
+	cd scheduler ; opam exec -- ocamlfind ocamlopt -package multicont -linkpkg -O3 -o main main.ml
 	
 
 clean:
