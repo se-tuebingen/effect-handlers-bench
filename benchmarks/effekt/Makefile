@@ -26,8 +26,8 @@ test: build
 	cd parsing_dollars ; ./main 10 > actual ; echo 55 > expected ; diff expected actual
 	cd resume_nontail ; ./main 5 > actual ; echo 37 > expected ; diff expected actual
 	cd handler_sieve ; ./main 10 > actual ; echo 17 > expected ; diff expected actual
-	cd scheduler ; ./out/main 10 > actual ; echo 10 > expected ; diff expected actual
-	cd interruptible_iterator ; ./out/main 10 > actual ; echo 110 > expected ; diff expected actual
+	cd scheduler ; ./out/main 10 > actual ; echo 10000 > expected ; diff expected actual
+	cd interruptible_iterator ; ./out/main 10 > actual ; echo 110000 > expected ; diff expected actual
 
 build:
 	cd countdown ; effekt.sh --backend llvm --build main.effekt ; cp ./out/main main

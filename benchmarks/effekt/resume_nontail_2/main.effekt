@@ -2,8 +2,6 @@
 import args
 import bench
 
-def abs(i: Int): Int = if (i < 0) { 0 - i } else { i }
-
 effect Operator(x: Int): Unit
 
 def loop(i: Int, s: Int): Int / Operator =

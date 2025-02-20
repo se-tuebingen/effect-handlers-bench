@@ -28,7 +28,7 @@ def parse(a: Int): Unit / {Read, Emit, Stop} = {
       do Emit(a);
       parse(0)
     } else {
-      do Stop()
+      do Stop() match {}
     }
 }
 

@@ -4,15 +4,23 @@ import args
 import string
 
 
-def abs(n: Int): Int = if (n < 0) 0 - n else n
-def max(n: Int, m: Int): Int = if (n > m) n else m
 def maximum(l: List[Int]): Int =
   l match {
     case Nil() => -1 // -inf
-    case Cons(x, Nil()) => x
-    case Cons(x, xs) => max(x, maximum(xs))
+    case Cons(x, xs) =>
+      def go(x: Int, xs: List[Int]): Int = {
+        xs match {
+          case Nil() => x
+          case Cons(y, ys) => go(max(x, y), ys)
+        }
+      };
+      go(x, xs)
   }
 
+def append(xs: List[Int], ys: List[Int]): List[Int] = xs match {
+  case Nil() => ys
+  case Cons(x, xs) => Cons(x, append(xs, ys))
+}
 
 interface Choose {
   def choose(): Bool
