@@ -24,7 +24,7 @@ pub fun run(n : int)
   primes(2, n, 0)
 
 pub fun main()
-  val n = get-args().head("").parse-int-default(10)
+  val n = get-args().head("").parse-int().default(10)
   val r = run(n)
   println(r)
 
