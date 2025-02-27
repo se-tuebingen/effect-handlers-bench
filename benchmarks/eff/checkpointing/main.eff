@@ -1,0 +1,79 @@
+
+type input
+  = Enter of int
+  | Commit
+  | Undo
+  | Done
+
+type checkpoint
+  = None
+  | Some of (unit -> checkpoint -> unit)
+
+effect Input: unit -> input
+effect Emit: int -> unit
+effect Save: unit -> unit
+effect Retry: unit -> unit
+
+effect Get : unit -> int
+effect Set : int -> unit
+
+let state =
+  handler
+  | x -> fun _ -> x
+  | effect (Get ()) k -> fun s -> (k s) s
+  | effect (Set s) k -> fun _ -> (k ()) s
+
+
+let input n program = (
+  handle (program ()) with
+  | x -> fun _ -> x
+  | effect (Input()) k ->
+    fun i ->
+      let i' = i + 1 in
+      if (i >= n)
+        then k Done i'
+      else if (i mod 3 = 0)
+        then k Commit i'
+      else if (i mod 5 = 0)
+        then k Undo i'
+      else
+        k (Enter i') i'
+  ) n
+
+
+let rec checkpointing program = (
+  handle program() with
+  | x -> fun _ -> x
+  | effect (Retry()) _ ->
+    fun cp ->
+      match cp with
+      | Some k -> k () cp
+      | None -> checkpointing program
+  | effect (Save()) k ->
+    fun _ -> k()(None)
+  ) (fun _ -> checkpointing program)
+
+
+let sum stream = (
+  handle stream() with
+  | _ -> fun s -> s
+  | effect (Emit(n)) k ->
+    fun s -> k () (s + n)
+  ) 0
+
+let user _ =
+  match perform Input() with
+  | Enter(n) ->
+    perform Emit(n);
+    user ()
+  | Commit ->
+    perform Save()
+    user ()
+  | Undo ->
+    perform Retry()
+    user ()
+  | Done ->
+    ()
+
+let run n =
+  inputs(n) (fun _ -> checkpointing (fun _ -> sum(user)) )
