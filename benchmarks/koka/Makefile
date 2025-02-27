@@ -11,7 +11,7 @@ bench: build
 		'parsing_dollars/main 20000' \
 		'resume_nontail/main 20000' \
 		'handler_sieve/main 60000' \
-		'checkpointing/main 10000000'
+		'checkpointing/main 10000'
 
 test: build
 	cd countdown ; ./main 5 > actual ; echo 0 > expected ; diff expected actual
