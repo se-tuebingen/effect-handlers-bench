@@ -1,0 +1,80 @@
+import list
+import option
+import args
+import string
+
+
+type Input {
+  Enter(n: Int)
+  Commit()
+  Undo()
+  Done()
+}
+
+effect input(): Input
+effect emit(value: Int): Unit
+effect save(): Unit
+effect retry(): Nothing
+
+def inputs[R](n: Int) { program: () => R / input }: R = {
+  var i = 0;
+  try {
+    program()
+  } with input { () =>
+    i = i + 1;
+    if (i < n) {
+      if (mod(i, 3) == 0) {
+        resume(Commit())
+      } else if (mod(i, 5) == 0) {
+        resume(Undo())
+      } else {
+        resume(Enter(i))
+      }
+    } else {
+      resume(Done())
+    }
+  }
+}
+
+def checkpointing[R] { program: () => R / {save, retry} }: R = {
+  var saved = None();
+  try {
+    program()
+  } with save { () =>
+    saved = Some(resume);
+    resume(())
+  } with retry { () =>
+    if (saved is Some(resumption)) {
+      resumption(())
+    } else {
+      checkpointing {program}
+    }
+  }
+}
+
+def sum { stream: () => Unit / emit }: Int = {
+  var s = 0;
+  try stream() with emit { v =>
+    s = s + v;
+    resume(())
+  };
+  return s
+}
+
+def user(): Unit / {input, emit, save, retry} = do input() match {
+  case Enter(n) => do emit(n); user()
+  case Commit() => do save(); user()
+  case Undo() => do retry()
+  case Done() => ()
+}
+
+def run(n: Int) =
+  inputs(n) { checkpointing { sum { user() } } }
+
+def main() = {
+  val n = on[WrongFormat].default{10}{
+    commandLineArgs().headOption.getOrElse{""}.toInt
+  }
+  val r = run(n);
+  println(r)
+}

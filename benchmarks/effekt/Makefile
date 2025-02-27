@@ -11,6 +11,7 @@ bench: build
 		'parsing_dollars/main 20000' \
 		'resume_nontail/main 20000' \
 		'handler_sieve/main 60000' \
+		'checkpointing/main 10000000' \
 		'scheduler/main 3000' \
 		'interruptible_iterator/main 3000'
 
@@ -26,6 +27,7 @@ test: build
 	cd parsing_dollars ; ./main 10 > actual ; echo 55 > expected ; diff expected actual
 	cd resume_nontail ; ./main 5 > actual ; echo 37 > expected ; diff expected actual
 	cd handler_sieve ; ./main 10 > actual ; echo 17 > expected ; diff expected actual
+	cd checkpointing ; ./main 10 > actual ; echo 18 > expected ; diff expected actual
 	cd scheduler ; ./out/main 10 > actual ; echo 10000 > expected ; diff expected actual
 	cd interruptible_iterator ; ./out/main 10 > actual ; echo 110000 > expected ; diff expected actual
 
@@ -41,6 +43,7 @@ build:
 	cd parsing_dollars ; effekt.sh --backend llvm --build main.effekt ; cp ./out/main main
 	cd resume_nontail ; effekt.sh --backend llvm --build main.effekt ; cp ./out/main main
 	cd handler_sieve ; effekt.sh --backend llvm --build main.effekt ; cp ./out/main main
+	cd checkpointing ; effekt.sh --backend llvm --build main.effekt ; cp ./out/main main
 	cd scheduler ; effekt.sh --backend llvm --build main.effekt ; cp ./out/main main
 	cd interruptible_iterator ; effekt.sh --backend llvm --build main.effekt ; cp ./out/main main
 
