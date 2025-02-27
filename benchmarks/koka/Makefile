@@ -10,7 +10,8 @@ bench: build
 		'triples/main 300 300' \
 		'parsing_dollars/main 20000' \
 		'resume_nontail/main 20000' \
-		'handler_sieve/main 60000'
+		'handler_sieve/main 60000' \
+		'checkpointing/main 10000000'
 
 test: build
 	cd countdown ; ./main 5 > actual ; echo 0 > expected ; diff expected actual
@@ -24,6 +25,7 @@ test: build
 	cd parsing_dollars ; ./main 10 > actual ; echo 55 > expected ; diff expected actual
 	cd resume_nontail ; ./main 5 > actual ; echo 37 > expected ; diff expected actual
 	cd handler_sieve ; ./main 10 > actual ; echo 17 > expected ; diff expected actual
+	cd checkpointing ; ./main 10 > actual ; echo 18 > expected ; diff expected actual
 
 build:
 	cd countdown ; koka -O3 -o main main.kk ; chmod +x main
@@ -37,6 +39,7 @@ build:
 	cd parsing_dollars ; koka -O3 -o main main.kk ; chmod +x main
 	cd resume_nontail ; koka -O3 -o main main.kk ; chmod +x main
 	cd handler_sieve ; koka -O3 -o main main.kk ; chmod +x main
+	cd checkpointing ; koka -O3 -o main main.kk ; chmod +x main
 
 clean:
 	-rm -r */.koka/
