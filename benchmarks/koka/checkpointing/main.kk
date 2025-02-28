@@ -9,15 +9,15 @@ value type input
   Done
 
 
-effect ctl read_input(): input
+effect ctl read(): input
 effect ctl emit(value: int): ()
 effect checkpoint
   ctl save(): ()
   ctl retry(): ()
 
-fun inputs<r>(n: int, program: () -> <read_input |e> r): e r {
+fun inputs<r>(n: int, program: () -> <read |e> r): e r {
   var i := 0
-  with ctl read_input()
+  with ctl read()
       i := i + 1
       if (i < n) then {
         if (i % 3 == 0) then {
@@ -34,22 +34,23 @@ fun inputs<r>(n: int, program: () -> <read_input |e> r): e r {
 
 }
 
-// why can't i get polymorphism to work here?
-fun checkpointing(program: () -> <checkpoint, div, read_input> int): <div, read_input> int {
+fun checkpointing<r>(program: () -> <checkpoint, div |e> r): <div |e> r {
   var saved := Nothing
-  with handler
-    ctl save()
-      saved := Just(resume)
-      resume(())
-    ctl retry()
-      match saved {
-        Just(resumption) -> resumption(())
-        Nothing -> checkpointing(program)
-      }
-  program()
+  fun restart()
+    with handler
+      ctl save()
+        saved := Just(resume)
+        resume(())
+      ctl retry()
+        match saved {
+          Just(resumption) -> resumption(())
+          Nothing -> restart()
+        }
+    program()
+  restart()
 }
 
-fun sum(stream: () -> <read_input, emit, checkpoint, div> ()): <read_input, checkpoint, div> int
+fun sum(stream: () -> <read, emit, checkpoint, div> ()): <read, checkpoint, div> int
   var s := 0
   with ctl emit(v)
     s := s + v
@@ -58,8 +59,8 @@ fun sum(stream: () -> <read_input, emit, checkpoint, div> ()): <read_input, chec
   return s
 
 
-fun user(): <read_input, emit, checkpoint, div> () {
-  match read_input() {
+fun user(): <read, emit, checkpoint, div> () {
+  match read() {
     Enter(n) -> {
       emit(n)
       user()
