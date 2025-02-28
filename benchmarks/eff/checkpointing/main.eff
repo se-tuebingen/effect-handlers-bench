@@ -7,7 +7,7 @@ type input
 
 type checkpoint
   = None
-  | Some of (unit -> checkpoint -> unit)
+  | Some of (unit -> (checkpoint -> unit))
 
 effect Input: unit -> input
 effect Emit: int -> unit
@@ -45,13 +45,13 @@ let rec checkpointing program = (
   handle program() with
   | x -> fun _ -> x
   | effect (Retry()) _ ->
-    fun cp ->
+    (fun cp ->
       match cp with
       | Some k -> k () cp
-      | None -> checkpointing program
+      | None -> checkpointing program)
   | effect (Save()) k ->
     fun _ -> k()(None)
-  ) (fun _ -> checkpointing program)
+  ) None
 
 
 let sum stream = (
@@ -76,4 +76,4 @@ let user _ =
     ()
 
 let run n =
-  inputs(n) (fun _ -> checkpointing (fun _ -> sum(user)) )
+  input(n) (fun _ -> checkpointing (fun _ -> sum(user)) )
