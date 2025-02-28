@@ -14,9 +14,9 @@ effect Emit: int -> unit
 effect Save: unit -> unit
 effect Retry: unit -> unit
 
-let input n program = (
+let inputs n program = (
   handle program () with
-  | x -> fun _ -> x
+  | x -> fun u -> x + 0
   | effect (Read ()) k ->
     fun i ->
       let i' = i + 1 in
@@ -32,28 +32,28 @@ let input n program = (
 
 
 let checkpointing program =
-  let rec restart _ =
+  let rec restart u =
     handle program () with
-    | x -> fun _ -> x
-    | effect (Retry()) _ ->
+    | x -> fun u -> x
+    | effect (Retry()) u ->
       (fun cp ->
         match cp with
         | Some k -> k () cp
         | None -> restart () cp)
     | effect (Save()) k ->
-      (fun _ -> k () (Some k)) in
+      (fun u -> k () (Some k)) in
 
   restart () None
 
 
 let sum stream = (
   handle stream () with
-  | _ -> fun s -> s
-  | effect (Emit(n)) k ->
+  | u -> fun s -> s
+  | effect (Emit n) k ->
     fun s -> k () (s + n)
   ) 0
 
-let rec user _ =
+let rec user u =
   match perform (Read ()) with
   | Enter(n) ->
     perform (Emit n);
@@ -68,4 +68,4 @@ let rec user _ =
     ()
 
 let run n =
-  input(n) (fun _ -> checkpointing (fun _ -> sum(user)) )
+  inputs n (fun u -> checkpointing (fun u -> sum (fun u -> user ())))
